@@ -8,9 +8,5 @@
   },
   "github": {
     "silent": true
-  },
-  "projectSettings": {
-    "name": "pilanaapp",
-    "framework": "nextjs"
   }
 }

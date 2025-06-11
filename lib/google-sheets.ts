@@ -81,3 +81,18 @@ export class GoogleSheetsService {
     return match ? match[1] : null
   }
 }
+
+export async function exportSubmissionToSheet(
+  googleSheetUrl: string,
+  submission: any,
+  range = "Sheet1!A1"
+) {
+  const service = GoogleSheetsService.getInstance()
+  const spreadsheetId = service.extractSpreadsheetId(googleSheetUrl)
+  if (!spreadsheetId) {
+    throw new Error("Invalid Google Sheet URL")
+  }
+
+  const values = [[new Date().toISOString(), JSON.stringify(submission)]]
+  return service.appendToSheet(spreadsheetId, range, values)
+}
