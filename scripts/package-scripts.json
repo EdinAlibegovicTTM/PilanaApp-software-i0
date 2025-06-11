@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "setup": "npx tsx scripts/generate-env.ts && npm install",
+    "setup:complete": "bash scripts/setup-complete.sh",
+    "dev:fresh": "npm run setup && npm run dev",
+    "check:env": "node -e \"console.log('Environment check:'); Object.keys(process.env).filter(k => k.includes('PILANA') || k.includes('JWT') || k.includes('DATABASE')).forEach(k => console.log(k + ':', process.env[k] ? '✅ Set' : '❌ Missing'))\"",
+    "generate:secrets": "node -e \"const crypto = require('crypto'); console.log('JWT_SECRET=' + crypto.randomBytes(32).toString('base64url')); console.log('NEXTAUTH_SECRET=' + crypto.randomBytes(32).toString('base64url'));\""
+  }
+}

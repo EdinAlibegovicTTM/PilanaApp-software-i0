@@ -43,7 +43,6 @@ interface AICopilotProps {
 }
 
 export function AICopilot({ user }: AICopilotProps) {
-  const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -347,16 +346,6 @@ What would you like to work on today?`,
           <FormOptimizerTab />
         </TabsContent>
       </Tabs>
-
-      {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 bg-white rounded-lg shadow-lg p-4 border">
-          <h3 className="font-medium mb-2">AI Copilot</h3>
-          <p className="text-sm text-gray-600 mb-4">How can I help you today?</p>
-          <Button variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
-            Close
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
@@ -758,24 +747,6 @@ function FormOptimizerTab() {
               <li>• Performance monitoring and alerts</li>
             </ul>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-export function AiCopilot() {
-  return (
-    <div className="fixed bottom-4 right-4">
-      <Card className="w-80">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Bot className="w-5 h-5" />
-            <span>AI Copilot</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-600">AI assistant is ready to help!</p>
         </CardContent>
       </Card>
     </div>

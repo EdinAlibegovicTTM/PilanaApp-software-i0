@@ -1,0 +1,17 @@
+# MINIMUM POTREBNO ZA RAD:
+
+# 1. JWT Secret (napravite bilo koji string)
+JWT_SECRET=pilana-super-secret-key-2024-production-abc123xyz
+
+# 2. Database će Neon automatski dodati
+# DATABASE_URL=... (automatski)
+# POSTGRES_URL=... (automatski)
+
+# 3. App config
+NEXT_PUBLIC_APP_NAME=Pilana App
+NODE_ENV=production
+
+# OPCIONO (aplikacija radi i bez ovih):
+# OPENAI_API_KEY=sk-your-key (za AI features)
+# GOOGLE_SERVICE_ACCOUNT_EMAIL=... (za Google Sheets)
+# GOOGLE_PRIVATE_KEY=... (za Google Sheets)

@@ -1,0 +1,16 @@
+# DEMO PODACI ZA LOKALNO TESTIRANJE
+
+JWT_SECRET=pilana-demo-secret-key-2024-development
+NEXTAUTH_SECRET=pilana-demo-nextauth-secret
+
+# Database (koristite Neon free tier)
+DATABASE_URL=postgresql://demo:demo@localhost:5432/pilana_demo
+
+# App config
+NEXT_PUBLIC_APP_NAME=Pilana App Demo
+NODE_ENV=development
+
+# Demo login podaci:
+# Username: admin, Password: password123
+# Username: manager, Password: password123
+# Username: user, Password: password123

@@ -1,15 +1,145 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Activity, CheckCircle2 } from "lucide-react"
 import { useState, useEffect } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Wifi, WifiOff, Users, Eye, Edit, CheckCircle2 } from "lucide-react"
 
-export function RealtimeIndicator() {
+interface RealtimeIndicatorProps {
+  formId?: string
+  isEditing?: boolean
+}
+
+export function RealtimeIndicator({ formId, isEditing = false }: RealtimeIndicatorProps) {
+  const [activeUsers, setActiveUsers] = useState<any[]>([])
+  const [isOnline, setIsOnline] = useState(true)
+  const [lastActivity, setLastActivity] = useState<Date | null>(null)
+
+  useEffect(() => {
+    // Monitor online status
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+    setIsOnline(navigator.onLine)
+
+    // Simulate active users (in production, this would come from WebSocket)
+    if (formId) {
+      const mockUsers = [
+        { id: "1", name: "John Doe", role: "admin", activity: "editing", lastSeen: new Date() },
+        { id: "2", name: "Jane Smith", role: "manager", activity: "viewing", lastSeen: new Date() },
+      ]
+      setActiveUsers(mockUsers)
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [formId])
+
+  const getActivityIcon = (activity: string) => {
+    switch (activity) {
+      case "editing":
+        return <Edit className="w-3 h-3" />
+      case "viewing":
+        return <Eye className="w-3 h-3" />
+      default:
+        return <Users className="w-3 h-3" />
+    }
+  }
+
+  const getActivityColor = (activity: string) => {
+    switch (activity) {
+      case "editing":
+        return "bg-orange-100 text-orange-700 border-orange-200"
+      case "viewing":
+        return "bg-blue-100 text-blue-700 border-blue-200"
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200"
+    }
+  }
+
   return (
-    <Badge variant="outline" className="bg-green-50 text-green-700">
-      <Activity className="w-3 h-3 mr-1" />
-      Realtime
-    </Badge>
+    <TooltipProvider>
+      <div className="flex items-center space-x-2">
+        {/* Online/Offline Status */}
+        <Tooltip>
+          <TooltipTrigger>
+            <Badge
+              variant="outline"
+              className={`flex items-center space-x-1 ${
+                isOnline ? "border-green-200 bg-green-50 text-green-700" : "border-red-200 bg-red-50 text-red-700"
+              }`}
+            >
+              {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+              <span className="text-xs">{isOnline ? "Online" : "Offline"}</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isOnline ? "Connected to cloud" : "Working offline"}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Current User Activity */}
+        {isEditing && (
+          <Badge
+            variant="outline"
+            className="flex items-center space-x-1 bg-orange-50 text-orange-700 border-orange-200"
+          >
+            <Edit className="w-3 h-3" />
+            <span className="text-xs">Editing</span>
+          </Badge>
+        )}
+
+        {/* Active Users */}
+        {activeUsers.length > 0 && (
+          <div className="flex items-center space-x-1">
+            {activeUsers.slice(0, 3).map((user) => (
+              <Tooltip key={user.id}>
+                <TooltipTrigger>
+                  <Badge
+                    variant="outline"
+                    className={`flex items-center space-x-1 text-xs ${getActivityColor(user.activity)}`}
+                  >
+                    {getActivityIcon(user.activity)}
+                    <span>{user.name.split(" ")[0]}</span>
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {user.name} is {user.activity} this form
+                  </p>
+                  <p className="text-xs text-gray-500">Last seen: {user.lastSeen.toLocaleTimeString()}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+
+            {activeUsers.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{activeUsers.length - 3} more
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Sync Status */}
+        {lastActivity && (
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="flex items-center space-x-1 text-xs text-gray-500">
+                <CheckCircle2 className="w-3 h-3 text-green-500" />
+                <span>Synced</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Last synced: {lastActivity.toLocaleTimeString()}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    </TooltipProvider>
   )
 }
 

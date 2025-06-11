@@ -1,46 +1,72 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { AIService } from "@/lib/ai-service"
+import { verifyToken } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
-    const { formId, userId, role } = await request.json()
-
-    // Check if user is admin
-    if (role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 })
+    // Verify authentication
+    const authHeader = request.headers.get("authorization")
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    // Simulate AI processing time
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Generate mock analysis results
-    const analysisResults = {
-      formId,
-      score: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
-      insights: [
-        { type: "success", message: "Good mobile responsiveness" },
-        { type: "warning", message: "Form is too long (12 fields)" },
-        { type: "info", message: "Consider adding progress indicator" },
-        { type: "success", message: "Good field validation" },
-        { type: "warning", message: "Some fields lack clear instructions" },
-      ],
-      recommendations: [
-        "Split into multiple pages",
-        "Add smart defaults",
-        "Improve field labels",
-        "Add inline validation",
-        "Consider conditional logic",
-      ],
-      metrics: {
-        completionRate: Math.floor(Math.random() * 30) + 65, // 65-95%
-        averageTimeToComplete: Math.floor(Math.random() * 120) + 60, // 60-180 seconds
-        mobileUsage: Math.floor(Math.random() * 30) + 60, // 60-90%
-        dropOffFields: ["Long text areas", "Complex selection fields"],
-      },
+    const token = authHeader.substring(7)
+    const user = verifyToken(token)
+    if (!user) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    return NextResponse.json(analysisResults)
+    const { form, formId } = await request.json()
+
+    if (!form && !formId) {
+      return NextResponse.json({ error: "Form data or Form ID is required" }, { status: 400 })
+    }
+
+    let formToAnalyze = form
+
+    // If only formId provided, get form from storage (mock for now)
+    if (!formToAnalyze && formId) {
+      formToAnalyze = {
+        id: formId,
+        name: "Sample Form",
+        fields: [
+          { label: "Name", required: true, type: "text" },
+          { label: "Email", required: true, type: "email" },
+          { label: "Message", required: false, type: "textarea" },
+        ],
+      }
+    }
+
+    const aiService = AIService.getInstance()
+    const analysis = await aiService.analyzeForm(formToAnalyze)
+
+    // Add analysis metadata
+    const enhancedAnalysis = {
+      ...analysis,
+      analyzedAt: new Date().toISOString(),
+      analyzedBy: user.username,
+      userRole: user.role,
+      version: "1.0",
+    }
+
+    // Log form analysis
+    console.log(
+      `📊 Form Analyzed - User: ${user.username}, Form: ${formToAnalyze.name || formId}, Score: ${analysis.score}`,
+    )
+
+    return NextResponse.json({
+      success: true,
+      analysis: enhancedAnalysis,
+      message: "Form analysis completed successfully!",
+    })
   } catch (error) {
-    console.error("Form analysis error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("❌ AI form analysis error:", error)
+    return NextResponse.json(
+      {
+        error: "Failed to analyze form",
+        message: "Please try again or contact support.",
+      },
+      { status: 500 },
+    )
   }
 }

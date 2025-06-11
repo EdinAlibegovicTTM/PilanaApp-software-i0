@@ -5,35 +5,68 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calculator, Clock, MapPin, QrCode, User } from "lucide-react"
+import { Calculator, Clock, MapPin, QrCode, User, X } from "lucide-react"
 import { ProductLookup } from "@/components/product-lookup"
+import { useToast } from "@/components/ui/use-toast"
 
-export function FormFillInterface({ form, user }) {
-  const [formData, setFormData] = useState({})
-  const [showManualInput, setShowManualInput] = useState(false)
+interface FormFillInterfaceProps {
+  form: any
+  user: any
+}
 
-  // Ensure fields is always an array
+export function FormFillInterface({ form, user }: FormFillInterfaceProps) {
+  const [formData, setFormData] = useState<Record<string, any>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showQrInput, setShowQrInput] = useState(false)
+  const { toast } = useToast()
+
+  // Ensure fields is always an array and handle both old and new field structures
   const fields = Array.isArray(form.fields) ? form.fields : []
 
-  const handleFieldChange = (fieldId, value) => {
+  const handleFieldChange = (fieldId: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }))
   }
 
-  const handleSubmit = () => {
-    // Check required fields
-    const missingFields = fields.filter((field) => field.required && !formData[field.id]).map((field) => field.label)
+  const handleSubmit = async () => {
+    // Validate required fields
+    const missingFields = fields
+      .filter((field: any) => field.required && !formData[field.id])
+      .map((field: any) => field.label)
 
     if (missingFields.length > 0) {
-      alert(`Please fill in required fields: ${missingFields.join(", ")}`)
+      toast({
+        title: "Missing required fields",
+        description: `Please fill in: ${missingFields.join(", ")}`,
+        variant: "destructive",
+      })
       return
     }
 
-    // Submit form
-    alert("Form submitted successfully!")
-    console.log("Form data:", formData)
+    setIsSubmitting(true)
+    try {
+      // Here you would implement the actual submission logic
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+
+      toast({
+        title: "Form submitted",
+        description: "Your form has been successfully submitted.",
+      })
+
+      // Reset form or redirect
+      // setFormData({})
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      toast({
+        title: "Submission failed",
+        description: "There was an error submitting your form. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const renderField = (field) => {
+  const renderField = (field: any) => {
     const value = formData[field.id] || ""
 
     switch (field.type) {
@@ -43,6 +76,7 @@ export function FormFillInterface({ form, user }) {
             value={value}
             onChange={(e) => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+            disabled={field.readonly}
           />
         )
       case "number":
@@ -53,6 +87,7 @@ export function FormFillInterface({ form, user }) {
               value={value}
               onChange={(e) => handleFieldChange(field.id, e.target.value)}
               placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+              disabled={field.readonly || field.isFormula}
             />
             {field.isFormula && (
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -62,19 +97,26 @@ export function FormFillInterface({ form, user }) {
           </div>
         )
       case "date":
-        return <Input type="date" value={value} onChange={(e) => handleFieldChange(field.id, e.target.value)} />
+        return (
+          <Input
+            type="date"
+            value={value}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            disabled={field.readonly}
+          />
+        )
       case "dropdown":
         return (
-          <Select value={value} onValueChange={(val) => handleFieldChange(field.id, val)}>
+          <Select value={value} onValueChange={(val) => handleFieldChange(field.id, val)} disabled={field.readonly}>
             <SelectTrigger>
               <SelectValue placeholder="Select option..." />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((option, index) => (
+              {field.options?.map((option: string, index: number) => (
                 <SelectItem key={index} value={option}>
                   {option}
                 </SelectItem>
-              ))}
+              )) || <SelectItem value="option1">Option 1</SelectItem>}
             </SelectContent>
           </Select>
         )
@@ -87,6 +129,7 @@ export function FormFillInterface({ form, user }) {
             additionalColumns={field.additionalColumns || []}
             value={value}
             onChange={(val) => handleFieldChange(field.id, val)}
+            disabled={field.readonly}
             placeholder={field.placeholder || "Search products..."}
             required={field.required}
           />
@@ -94,25 +137,43 @@ export function FormFillInterface({ form, user }) {
       case "qr":
         return (
           <div>
-            {showManualInput ? (
-              <div>
+            {showQrInput ? (
+              <div className="relative">
                 <Input
                   value={value}
                   onChange={(e) => handleFieldChange(field.id, e.target.value)}
                   placeholder="Enter QR code manually"
+                  disabled={field.readonly}
                 />
-                <Button variant="link" className="mt-2" onClick={() => setShowManualInput(false)}>
-                  Use scanner instead
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  onClick={() => setShowQrInput(false)}
+                >
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <div>
-                <Button variant="outline" className="w-full" onClick={() => alert("QR scanner would open here")}>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    // Here you would implement actual QR scanning
+                    // For now, just show a toast
+                    toast({
+                      title: "Camera access required",
+                      description: "Please allow camera access to scan QR codes.",
+                    })
+                  }}
+                  disabled={field.readonly}
+                >
                   <QrCode className="w-4 h-4 mr-2" />
                   Scan QR Code
                 </Button>
-                <Button variant="link" className="mt-2" onClick={() => setShowManualInput(true)}>
-                  Enter code manually
+                <Button variant="outline" onClick={() => setShowQrInput(true)} disabled={field.readonly}>
+                  Manual Input
                 </Button>
               </div>
             )}
@@ -145,13 +206,14 @@ export function FormFillInterface({ form, user }) {
             value={value}
             onChange={(e) => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+            disabled={field.readonly}
           />
         )
     }
   }
 
   return (
-    <div className="p-6">
+    <div>
       {/* Debug panel - only show for admin users */}
       {user?.role === "admin" && (
         <div className="mb-4 p-4 bg-gray-100 rounded text-xs">
@@ -159,6 +221,14 @@ export function FormFillInterface({ form, user }) {
           <div>Form ID: {form.id}</div>
           <div>Form Name: {form.name}</div>
           <div>Fields Count: {fields.length}</div>
+          <div>
+            Fields:{" "}
+            {JSON.stringify(
+              fields.map((f: any) => ({ id: f.id, type: f.type, label: f.label })),
+              null,
+              2,
+            )}
+          </div>
         </div>
       )}
 
@@ -175,8 +245,8 @@ export function FormFillInterface({ form, user }) {
           </div>
         ) : (
           fields
-            .filter((field) => !field.hidden)
-            .map((field, index) => (
+            .filter((field: any) => !field.hidden)
+            .map((field: any, index: number) => (
               <div key={field.id || index} className="border rounded-lg p-4">
                 <Label className="text-sm font-medium mb-2 block">
                   {field.label}
@@ -197,7 +267,9 @@ export function FormFillInterface({ form, user }) {
           <Button variant="outline">Print</Button>
           <Button variant="outline">Save PDF</Button>
         </div>
-        <Button onClick={handleSubmit}>Send</Button>
+        <Button onClick={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting ? "Sending..." : "Send"}
+        </Button>
       </div>
     </div>
   )

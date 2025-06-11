@@ -87,7 +87,6 @@ const FIELD_CONSTRAINTS = {
   },
 }
 
-// Define interfaces
 interface FormField {
   id: string
   type: string
@@ -136,11 +135,9 @@ interface FormField {
 interface FormDesignerProps {
   form: any
   onSave: (updatedForm: any) => void
-  user: any
 }
 
-export function FormDesigner({ form, onSave, user }: FormDesignerProps) {
-  const [formData, setFormData] = useState(form)
+export default function FormDesigner({ form, onSave }: FormDesignerProps) {
   const [fields, setFields] = useState<FormField[]>([])
   const [selectedField, setSelectedField] = useState<FormField | null>(null)
   const [formSettings, setFormSettings] = useState({
@@ -486,7 +483,7 @@ export function FormDesigner({ form, onSave, user }: FormDesignerProps) {
                 updated.mobile.position = validatePosition(updates.mobile.position, updated.mobile.size, "mobile")
               }
               if (updates.mobile.size) {
-                updated.mobile.size = validateSize(updates.mobile.size, "desktop")
+                updated.mobile.size = validateSize(updates.mobile.size, "mobile")
                 updated.mobile.position = validatePosition(updated.mobile.position, updated.mobile.size, "mobile")
               }
             }
@@ -903,24 +900,6 @@ export function FormDesigner({ form, onSave, user }: FormDesignerProps) {
   )
 }
 
-interface DesktopToolbarProps {
-  form: any
-  fields: FormField[]
-  hasUnsavedChanges: boolean
-  lastSaved: Date | null
-  previewMode: boolean
-  previewDevice: "mobile" | "tablet" | "desktop"
-  leftPanelCollapsed: boolean
-  rightPanelCollapsed: boolean
-  onPreviewModeChange: (previewMode: boolean) => void
-  onPreviewDeviceChange: (device: "mobile" | "tablet" | "desktop") => void
-  onLeftPanelToggle: () => void
-  onRightPanelToggle: () => void
-  onSave: () => void
-  onReset: () => void
-  onDiscardDraft: () => void
-}
-
 function DesktopToolbar({
   form,
   fields,
@@ -937,7 +916,7 @@ function DesktopToolbar({
   onSave,
   onReset,
   onDiscardDraft,
-}: DesktopToolbarProps) {
+}: any) {
   return (
     <div className="bg-white border-b border-gray-200 p-4">
       <div className="flex items-center justify-between">
@@ -1029,23 +1008,6 @@ function DesktopToolbar({
   )
 }
 
-interface MobileToolbarProps {
-  form: any
-  fields: FormField[]
-  hasUnsavedChanges: boolean
-  lastSaved: Date | null
-  previewMode: boolean
-  previewDevice: "mobile" | "tablet" | "desktop"
-  selectedField: FormField | null
-  onPreviewModeChange: (previewMode: boolean) => void
-  onPreviewDeviceChange: (device: "mobile" | "tablet" | "desktop") => void
-  onShowFieldTypes: () => void
-  onShowProperties: () => void
-  onSave: () => void
-  onReset: () => void
-  onDiscardDraft: () => void
-}
-
 function MobileToolbar({
   form,
   fields,
@@ -1061,7 +1023,7 @@ function MobileToolbar({
   onSave,
   onReset,
   onDiscardDraft,
-}: MobileToolbarProps) {
+}: any) {
   return (
     <div className="bg-white border-b border-gray-200 p-3">
       <div className="flex items-center justify-between mb-2">
@@ -1132,16 +1094,6 @@ function MobileToolbar({
   )
 }
 
-interface FieldTypesPanelProps {
-  fieldTypes: any[]
-  formSettings: any
-  onAddField: (fieldType: string) => void
-  onFormSettingsChange: (newSettings: any) => void
-  canvasSize: { width: number; height: number }
-  lastSaved: Date | null
-  fields: FormField[]
-}
-
 function FieldTypesPanel({
   fieldTypes,
   formSettings,
@@ -1150,7 +1102,7 @@ function FieldTypesPanel({
   canvasSize,
   lastSaved,
   fields,
-}: FieldTypesPanelProps) {
+}: any) {
   return (
     <div className="p-4">
       <h3 className="text-lg font-semibold mb-4">Field Types</h3>
@@ -1275,12 +1227,7 @@ function FieldTypesPanel({
   )
 }
 
-interface FieldTypeItemProps {
-  fieldType: any
-  onAdd: () => void
-}
-
-function FieldTypeItem({ fieldType, onAdd }: FieldTypeItemProps) {
+function FieldTypeItem({ fieldType, onAdd }: { fieldType: any; onAdd: () => void }) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "fieldType",
     item: { fieldType: fieldType.id },
@@ -1310,18 +1257,19 @@ function FieldTypeItem({ fieldType, onAdd }: FieldTypeItemProps) {
   )
 }
 
-interface DesignCanvasProps {
-  fields: FormField[]
-  backgroundColor: string
-  canvasSize: { width: number; height: number }
-  designDevice: "desktop" | "mobile"
-  onFieldUpdate: (fieldId: string, updates: Partial<FormField>) => void
-  onFieldSelect: (field: FormField) => void
-  onFieldDelete: (fieldId: string) => void
-  onFieldAdd: (fieldType: string, position?: { x: number; y: number }) => void
-}
-
-const DesignCanvas = React.forwardRef<HTMLDivElement, DesignCanvasProps>(
+const DesignCanvas = React.forwardRef<
+  HTMLDivElement,
+  {
+    fields: FormField[]
+    backgroundColor: string
+    canvasSize: { width: number; height: number }
+    designDevice: "desktop" | "mobile"
+    onFieldUpdate: (fieldId: string, updates: Partial<FormField>) => void
+    onFieldSelect: (field: FormField) => void
+    onFieldDelete: (fieldId: string) => void
+    onFieldAdd: (fieldType: string, position?: { x: number; y: number }) => void
+  }
+>(
   (
     { fields, backgroundColor, canvasSize, designDevice, onFieldUpdate, onFieldSelect, onFieldDelete, onFieldAdd },
     ref,
@@ -1461,15 +1409,15 @@ const DesignCanvas = React.forwardRef<HTMLDivElement, DesignCanvasProps>(
             className="absolute inset-0 opacity-5"
             style={{
               backgroundImage: `
-            linear-gradient(to right, #000 1px, transparent 1px),
-            linear-gradient(to bottom, #000 1px, transparent 1px)
-          `,
+              linear-gradient(to right, #000 1px, transparent 1px),
+              linear-gradient(to bottom, #000 1px, transparent 1px)
+            `,
               backgroundSize: "20px 20px",
             }}
           />
 
           <div className="absolute top-2 left-2 text-xs text-gray-400 bg-white px-2 py-1 rounded shadow">
-            {designDevice.charAt(0).toUpperCase() + designDevice.slice(1)}: {canvasSize.width}×{canvasSize.height}px
+            {`${designDevice.charAt(0).toUpperCase() + designDevice.slice(1)}: ${canvasSize.width}×${canvasSize.height}px`}
           </div>
 
           {isOver && (
@@ -1508,15 +1456,7 @@ const DesignCanvas = React.forwardRef<HTMLDivElement, DesignCanvasProps>(
   },
 )
 
-interface DraggableFieldProps {
-  field: FormField
-  designDevice: "desktop" | "mobile"
-  canvasSize: { width: number; height: number }
-  onFieldUpdate: (fieldId: string, updates: Partial<FormField>) => void
-  onFieldSelect: (field: FormField) => void
-  onFieldDelete: (fieldId: string) => void
-  findSnapPosition: (field: FormField, position: { x: number; y: number }) => { x: number; y: number }
-}
+DesignCanvas.displayName = "DesignCanvas"
 
 function DraggableField({
   field,
@@ -1526,7 +1466,15 @@ function DraggableField({
   onFieldSelect,
   onFieldDelete,
   findSnapPosition,
-}: DraggableFieldProps) {
+}: {
+  field: FormField
+  designDevice: "desktop" | "mobile"
+  canvasSize: { width: number; height: number }
+  onFieldUpdate: (fieldId: string, updates: Partial<FormField>) => void
+  onFieldSelect: (field: FormField) => void
+  onFieldDelete: (fieldId: string) => void
+  findSnapPosition: (field: FormField, position: { x: number; y: number }) => { x: number; y: number }
+}) {
   const currentLayout = field[designDevice]
   const constraints = FIELD_CONSTRAINTS[designDevice]
 
@@ -1641,7 +1589,7 @@ function DraggableField({
               Scan QR for Products
             </Button>
             <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-              {field.fieldMappings?.length || 0} field mappings configured
+              {`${field.fieldMappings?.length || 0} field mappings configured`}
             </div>
           </div>
         )
@@ -1692,56 +1640,91 @@ function DraggableField({
       }}
     >
       <div
-        className="relative p-2 border-2 border-gray-200 hover:border-blue-300 group-hover:shadow-md cursor-pointer rounded-lg bg-white transition-all"
-        style={{ width: "100%", height: "100%" }}
+        className="relative p-2 border-2 border-gray-200 hover:border-blue-300 group-hover:shadow-md cursor-pointer rounded-lg bg-white transition-all h-full"
+        style={{
+          minHeight: currentLayout.size.height,
+        }}
       >
-        <div className="absolute -top-6 left-0 right-0 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">{field.type}</div>
-          <div className="flex items-center space-x-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation()
-                onFieldDelete(field.id)
-              }}
-            >
-              <Trash2 className="w-3 h-3 text-red-500" />
-            </Button>
-          </div>
+        <div className="absolute -top-2 -right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-5 w-5 p-0"
+            onClick={(e) => {
+              e.stopPropagation()
+              onFieldSelect(field)
+            }}
+          >
+            <Settings className="w-2 h-2" />
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-5 w-5 p-0"
+            onClick={(e) => {
+              e.stopPropagation()
+              onFieldDelete(field.id)
+            }}
+          >
+            <Trash2 className="w-2 h-2" />
+          </Button>
         </div>
 
         <div
           ref={drag}
-          className="absolute -top-3 left-1/2 transform -translate-x-1/2 cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute -left-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move"
         >
-          <GripVertical className="w-5 h-5 text-gray-400" />
+          <GripVertical className="w-3 h-3 text-gray-400" />
         </div>
 
-        <div className="flex flex-col h-full">
-          <div className="text-xs font-medium mb-1 truncate">{field.label}</div>
-          <div className="flex-1 min-h-0">{renderFieldPreview()}</div>
-          {field.required && (
-            <div className="absolute bottom-1 right-1">
-              <span className="text-red-500 text-xs">*</span>
-            </div>
-          )}
+        <div className="mb-1">
+          <Label className="text-xs font-medium">
+            {field.label}
+            {field.required && <span className="text-red-500 ml-1">*</span>}
+          </Label>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {field.permanent && (
+              <Badge variant="secondary" className="text-xs px-1 py-0">
+                Permanent
+              </Badge>
+            )}
+            {field.readonly && (
+              <Badge variant="secondary" className="text-xs px-1 py-0">
+                Read-only
+              </Badge>
+            )}
+            {field.hidden && (
+              <Badge variant="secondary" className="text-xs px-1 py-0">
+                Hidden
+              </Badge>
+            )}
+            {field.isFormula && (
+              <Badge variant="secondary" className="text-xs px-1 py-0">
+                Formula
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div style={{ maxWidth: currentLayout.size.width - 16 }}>{renderFieldPreview()}</div>
+
+        {field.googleSheetColumn && (
+          <div className="mt-1 text-xs text-gray-500">
+            → Export Column: {field.googleSheetColumn}
+            {field.importSheetUrl && field.importCell && <div>← Import: {field.importCell}</div>}
+            {field.type === "qr" && field.qrScanSheetUrl && field.qrScanCell && (
+              <div>⚡ QR Scan: {field.qrScanCell}</div>
+            )}
+            {field.isFormula && field.formula && <div>📊 Formula: {field.formula}</div>}
+          </div>
+        )}
+
+        <div className="absolute bottom-1 right-1 text-xs text-gray-400 opacity-0 group-hover:opacity-100">
+          {`${currentLayout.size.width}×${currentLayout.size.height} @ ${currentLayout.position.x},${currentLayout.position.y}`}
         </div>
       </div>
-
-      <div className="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 rounded-bl cursor-nwse-resize opacity-0 group-hover:opacity-100 transition-opacity"></div>
     </div>
   )
-}
-
-interface FieldPropertiesProps {
-  field: FormField
-  designDevice: "desktop" | "mobile"
-  availableFields: Array<{ id: string; label: string }>
-  canvasSize: { width: number; height: number }
-  onUpdate: (updates: Partial<FormField>) => void
-  onDelete: () => void
 }
 
 function FieldProperties({
@@ -1751,326 +1734,39 @@ function FieldProperties({
   canvasSize,
   onUpdate,
   onDelete,
-}: FieldPropertiesProps) {
+}: {
+  field: FormField
+  designDevice: "desktop" | "mobile"
+  availableFields: { id: string; label: string }[]
+  canvasSize: { width: number; height: number }
+  onUpdate: (updates: Partial<FormField>) => void
+  onDelete: () => void
+}) {
   const currentLayout = field[designDevice]
   const constraints = FIELD_CONSTRAINTS[designDevice]
-
-  const handlePositionChange = (axis: "x" | "y", value: number) => {
-    const newPosition = { ...currentLayout.position }
-    newPosition[axis] = Number.parseInt(value.toString())
-
-    const maxX = canvasSize.width - currentLayout.size.width
-    const maxY = canvasSize.height - currentLayout.size.height
-
-    newPosition.x = Math.max(0, Math.min(newPosition.x, maxX))
-    newPosition.y = Math.max(0, Math.min(newPosition.y, maxY))
-
-    onUpdate({
-      [designDevice]: {
-        ...currentLayout,
-        position: newPosition,
-      },
-    })
-  }
-
-  const handleSizeChange = (dimension: "width" | "height", value: number) => {
-    const newSize = { ...currentLayout.size }
-    newSize[dimension] = Number.parseInt(value.toString())
-
-    newSize.width = Math.max(constraints.minWidth, Math.min(newSize.width, constraints.maxWidth))
-    newSize.height = Math.max(constraints.minHeight, Math.min(newSize.height, constraints.maxHeight))
-
-    onUpdate({
-      [designDevice]: {
-        ...currentLayout,
-        size: newSize,
-      },
-    })
-  }
-
-  const renderFieldSpecificProperties = () => {
-    switch (field.type) {
-      case "number":
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isFormula"
-                checked={field.isFormula}
-                onCheckedChange={(checked) => onUpdate({ isFormula: !!checked })}
-              />
-              <Label htmlFor="isFormula">Is Formula</Label>
-            </div>
-
-            {field.isFormula && (
-              <div>
-                <Label>Formula</Label>
-                <Textarea
-                  value={field.formula || ""}
-                  onChange={(e) => onUpdate({ formula: e.target.value })}
-                  placeholder="e.g. field_1 + field_2"
-                  className="h-20"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  Available fields:
-                  <div className="mt-1 space-y-1">
-                    {availableFields.map((f) => (
-                      <Badge key={f.id} variant="outline" className="mr-1">
-                        {f.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )
-
-      case "dropdown":
-        return (
-          <div>
-            <Label>Options (one per line)</Label>
-            <Textarea
-              value={(field.options || []).join("\n")}
-              onChange={(e) => onUpdate({ options: e.target.value.split("\n").filter((o) => o.trim() !== "") })}
-              placeholder="Option 1
-Option 2
-Option 3"
-              className="h-32"
-            />
-          </div>
-        )
-
-      case "productLookup":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Google Sheet URL</Label>
-              <Input
-                value={field.lookupSheetUrl || ""}
-                onChange={(e) => onUpdate({ lookupSheetUrl: e.target.value })}
-                placeholder="https://docs.google.com/spreadsheets/d/..."
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>Code Column</Label>
-                <Input
-                  value={field.codeColumn || ""}
-                  onChange={(e) => onUpdate({ codeColumn: e.target.value })}
-                  placeholder="A"
-                />
-              </div>
-              <div>
-                <Label>Name Column</Label>
-                <Input
-                  value={field.nameColumn || ""}
-                  onChange={(e) => onUpdate({ nameColumn: e.target.value })}
-                  placeholder="B"
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Additional Columns (comma separated)</Label>
-              <Input
-                value={(field.additionalColumns || []).join(",")}
-                onChange={(e) => onUpdate({ additionalColumns: e.target.value.split(",").map((c) => c.trim()) })}
-                placeholder="C,D,E"
-              />
-            </div>
-          </div>
-        )
-
-      case "qrProductScanner":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Google Sheet URL</Label>
-              <Input
-                value={field.qrProductLookupSheetUrl || ""}
-                onChange={(e) => onUpdate({ qrProductLookupSheetUrl: e.target.value })}
-                placeholder="https://docs.google.com/spreadsheets/d/..."
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>QR Code Column</Label>
-                <Input
-                  value={field.qrCodeColumn || ""}
-                  onChange={(e) => onUpdate({ qrCodeColumn: e.target.value })}
-                  placeholder="A"
-                />
-              </div>
-              <div>
-                <Label>Max Products</Label>
-                <Input
-                  type="number"
-                  value={field.maxProducts || 10}
-                  onChange={(e) => onUpdate({ maxProducts: Number.parseInt(e.target.value) })}
-                  min={1}
-                  max={100}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="flex items-center justify-between">
-                <span>Field Mappings</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    onUpdate({
-                      fieldMappings: [
-                        ...(field.fieldMappings || []),
-                        {
-                          fieldName: `Field ${(field.fieldMappings || []).length + 1}`,
-                          sheetColumn: "",
-                          aggregation: "first",
-                          isManualEntry: false,
-                          fieldType: "text",
-                        },
-                      ],
-                    })
-                  }
-                >
-                  <Plus className="w-3 h-3 mr-1" /> Add Field
-                </Button>
-              </Label>
-
-              <div className="space-y-3 mt-2">
-                {(field.fieldMappings || []).map((mapping, index) => (
-                  <div key={index} className="border p-2 rounded">
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <div>
-                        <Label className="text-xs">Field Name</Label>
-                        <Input
-                          value={mapping.fieldName}
-                          onChange={(e) => {
-                            const newMappings = [...(field.fieldMappings || [])]
-                            newMappings[index].fieldName = e.target.value
-                            onUpdate({ fieldMappings: newMappings })
-                          }}
-                          className="text-xs"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Sheet Column</Label>
-                        <Input
-                          value={mapping.sheetColumn}
-                          onChange={(e) => {
-                            const newMappings = [...(field.fieldMappings || [])]
-                            newMappings[index].sheetColumn = e.target.value
-                            onUpdate({ fieldMappings: newMappings })
-                          }}
-                          placeholder="B"
-                          className="text-xs"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <div>
-                        <Label className="text-xs">Aggregation</Label>
-                        <Select
-                          value={mapping.aggregation}
-                          onValueChange={(value) => {
-                            const newMappings = [...(field.fieldMappings || [])]
-                            newMappings[index].aggregation = value as "first" | "sum" | "average" | "last"
-                            onUpdate({ fieldMappings: newMappings })
-                          }}
-                        >
-                          <SelectTrigger className="text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="first">First</SelectItem>
-                            <SelectItem value="last">Last</SelectItem>
-                            <SelectItem value="sum">Sum</SelectItem>
-                            <SelectItem value="average">Average</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Field Type</Label>
-                        <Select
-                          value={mapping.fieldType}
-                          onValueChange={(value) => {
-                            const newMappings = [...(field.fieldMappings || [])]
-                            newMappings[index].fieldType = value as "text" | "number"
-                            onUpdate({ fieldMappings: newMappings })
-                          }}
-                        >
-                          <SelectTrigger className="text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="text">Text</SelectItem>
-                            <SelectItem value="number">Number</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`manual-entry-${index}`}
-                        checked={mapping.isManualEntry}
-                        onCheckedChange={(checked) => {
-                          const newMappings = [...(field.fieldMappings || [])]
-                          newMappings[index].isManualEntry = !!checked
-                          onUpdate({ fieldMappings: newMappings })
-                        }}
-                      />
-                      <Label htmlFor={`manual-entry-${index}`} className="text-xs">
-                        Manual Entry
-                      </Label>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="ml-auto h-6 w-6 p-0"
-                        onClick={() => {
-                          const newMappings = [...(field.fieldMappings || [])]
-                          newMappings.splice(index, 1)
-                          onUpdate({ fieldMappings: newMappings })
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {(!field.fieldMappings || field.fieldMappings.length === 0) && (
-                  <div className="text-center text-xs text-gray-500 p-2 border border-dashed rounded">
-                    No field mappings defined
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )
-
-      default:
-        return null
-    }
-  }
+  const maxX = canvasSize.width - currentLayout.size.width
+  const maxY = canvasSize.height - currentLayout.size.height
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Field Properties</h3>
-        <Button variant="outline" size="sm" className="text-red-500" onClick={onDelete}>
-          <Trash2 className="w-4 h-4 mr-1" />
-          Delete
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">
+          Field Properties ({designDevice.charAt(0).toUpperCase() + designDevice.slice(1)})
+        </h3>
+        <Button size="sm" variant="destructive" onClick={onDelete}>
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
 
       <div className="space-y-4">
         <div>
-          <Label>Label</Label>
-          <Input value={field.label} onChange={(e) => onUpdate({ label: e.target.value })} />
+          <Label>Field Label</Label>
+          <Input
+            value={field.label}
+            onChange={(e) => onUpdate({ label: e.target.value })}
+            placeholder="Enter field label"
+          />
         </div>
 
         <div>
@@ -2078,240 +1774,647 @@ Option 3"
           <Input
             value={field.placeholder || ""}
             onChange={(e) => onUpdate({ placeholder: e.target.value })}
-            placeholder={`Enter ${field.label.toLowerCase()}`}
+            placeholder="Enter placeholder text"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>X Position</Label>
-            <Input
-              type="number"
-              value={currentLayout.position.x}
-              onChange={(e) => handlePositionChange("x", Number.parseInt(e.target.value))}
-              min={0}
-              max={canvasSize.width - currentLayout.size.width}
-            />
-          </div>
-          <div>
-            <Label>Y Position</Label>
-            <Input
-              type="number"
-              value={currentLayout.position.y}
-              onChange={(e) => handlePositionChange("y", Number.parseInt(e.target.value))}
-              min={0}
-              max={canvasSize.height - currentLayout.size.height}
-            />
-          </div>
-        </div>
+        <div className="space-y-3">
+          <h4 className="font-medium">Field Options</h4>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>Width</Label>
-            <Input
-              type="number"
-              value={currentLayout.size.width}
-              onChange={(e) => handleSizeChange("width", Number.parseInt(e.target.value))}
-              min={constraints.minWidth}
-              max={constraints.maxWidth}
-            />
-          </div>
-          <div>
-            <Label>Height</Label>
-            <Input
-              type="number"
-              value={currentLayout.size.height}
-              onChange={(e) => handleSizeChange("height", Number.parseInt(e.target.value))}
-              min={constraints.minHeight}
-              max={constraints.maxHeight}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="required"
+              id="required-checkbox"
               checked={field.required}
               onCheckedChange={(checked) => onUpdate({ required: !!checked })}
             />
-            <Label htmlFor="required">Required</Label>
+            <Label htmlFor="required-checkbox">Mandatory</Label>
           </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="readonly"
+              id="readonly-checkbox"
               checked={field.readonly}
               onCheckedChange={(checked) => onUpdate({ readonly: !!checked })}
             />
-            <Label htmlFor="readonly">Read Only</Label>
+            <Label htmlFor="readonly-checkbox">Read-only</Label>
           </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="hidden"
+              id="hidden-checkbox"
               checked={field.hidden}
               onCheckedChange={(checked) => onUpdate({ hidden: !!checked })}
             />
-            <Label htmlFor="hidden">Hidden</Label>
+            <Label htmlFor="hidden-checkbox">Hidden</Label>
           </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="permanent"
+              id="permanent-checkbox"
               checked={field.permanent}
               onCheckedChange={(checked) => onUpdate({ permanent: !!checked })}
             />
-            <Label htmlFor="permanent">Permanent (cannot be deleted)</Label>
+            <Label htmlFor="permanent-checkbox">Permanent</Label>
           </div>
+
+          {field.type === "number" && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="formula-checkbox"
+                checked={field.isFormula}
+                onCheckedChange={(checked) => onUpdate({ isFormula: !!checked })}
+              />
+              <Label htmlFor="formula-checkbox">Formula Field</Label>
+            </div>
+          )}
         </div>
 
-        {renderFieldSpecificProperties()}
+        {field.type === "dropdown" && (
+          <div>
+            <Label>Dropdown Options</Label>
+            <Textarea
+              value={field.options?.join("\n") || ""}
+              onChange={(e) => onUpdate({ options: e.target.value.split("\n").filter(Boolean) })}
+              placeholder="Enter each option on a new line"
+              rows={4}
+            />
+          </div>
+        )}
+
+        {field.type === "productLookup" && (
+          <div className="space-y-3">
+            <h4 className="font-medium">Product Lookup Configuration</h4>
+
+            <div>
+              <Label>Lookup Sheet URL</Label>
+              <Input
+                value={field.lookupSheetUrl || ""}
+                onChange={(e) => onUpdate({ lookupSheetUrl: e.target.value })}
+                placeholder="https://docs.google.com/spreadsheets/d/..."
+                className="text-xs"
+              />
+              <p className="text-xs text-gray-500 mt-1">Google Sheet containing product data</p>
+            </div>
+
+            <div>
+              <Label>Code Column</Label>
+              <Input
+                value={field.codeColumn || ""}
+                onChange={(e) => onUpdate({ codeColumn: e.target.value })}
+                placeholder="e.g., A or product_code"
+              />
+              <p className="text-xs text-gray-500 mt-1">Column containing product codes</p>
+            </div>
+
+            <div>
+              <Label>Name Column</Label>
+              <Input
+                value={field.nameColumn || ""}
+                onChange={(e) => onUpdate({ nameColumn: e.target.value })}
+                placeholder="e.g., B or product_name"
+              />
+              <p className="text-xs text-gray-500 mt-1">Column containing product names</p>
+            </div>
+
+            <div>
+              <Label>Additional Columns (comma separated)</Label>
+              <Input
+                value={field.additionalColumns?.join(",") || ""}
+                onChange={(e) =>
+                  onUpdate({
+                    additionalColumns: e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
+                placeholder="e.g., price,stock,category"
+              />
+              <p className="text-xs text-gray-500 mt-1">Other columns to fetch (max 3 recommended)</p>
+            </div>
+
+            <div className="border-t pt-3">
+              <h5 className="font-medium text-sm mb-2">Export Configuration</h5>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Code Export Column</Label>
+                  <Input
+                    value={field.codeExportColumn || ""}
+                    onChange={(e) => onUpdate({ codeExportColumn: e.target.value })}
+                    placeholder="e.g., A"
+                  />
+                </div>
+
+                <div>
+                  <Label>Name Export Column</Label>
+                  <Input
+                    value={field.nameExportColumn || ""}
+                    onChange={(e) => onUpdate({ nameExportColumn: e.target.value })}
+                    placeholder="e.g., B"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-2">
+                <Label>Additional Export Columns (JSON)</Label>
+                <Textarea
+                  value={field.additionalExportColumns || ""}
+                  onChange={(e) => onUpdate({ additionalExportColumns: e.target.value })}
+                  placeholder='{"price":"C","stock":"D"}'
+                  rows={2}
+                />
+                <p className="text-xs text-gray-500 mt-1">JSON mapping of data to columns</p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded text-xs">
+              <h5 className="font-medium mb-1">Performance Tips:</h5>
+              <div className="space-y-1 text-gray-600">
+                <div>• Use a dedicated sheet for lookups</div>
+                <div>• Keep data sorted by code for faster lookups</div>
+                <div>• Limit additional columns to essential data</div>
+                <div>• For very large datasets (over 10k rows), consider pagination</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {field.type === "qrProductScanner" && (
+          <div className="space-y-3">
+            <h4 className="font-medium">QR Product Scanner Configuration</h4>
+
+            <div>
+              <Label>Product Lookup Sheet URL</Label>
+              <Input
+                value={field.qrProductLookupSheetUrl || ""}
+                onChange={(e) => onUpdate({ qrProductLookupSheetUrl: e.target.value })}
+                placeholder="https://docs.google.com/spreadsheets/d/..."
+                className="text-xs"
+              />
+              <p className="text-xs text-gray-500 mt-1">Google Sheet containing product data linked to QR codes</p>
+            </div>
+
+            <div>
+              <Label>QR Code Column</Label>
+              <Input
+                value={field.qrCodeColumn || "A"}
+                onChange={(e) => onUpdate({ qrCodeColumn: e.target.value })}
+                placeholder="e.g., A"
+              />
+              <p className="text-xs text-gray-500 mt-1">Column containing QR code identifiers</p>
+            </div>
+
+            <div>
+              <Label>Maximum Products</Label>
+              <Input
+                type="number"
+                min="1"
+                max="50"
+                value={field.maxProducts || 10}
+                onChange={(e) => onUpdate({ maxProducts: Number.parseInt(e.target.value) || 10 })}
+              />
+              <p className="text-xs text-gray-500 mt-1">Maximum number of product fields to generate (1-50)</p>
+            </div>
+
+            <div className="space-y-3">
+              <h5 className="font-medium text-sm">Field Mappings</h5>
+              <div className="space-y-2">
+                {(field.fieldMappings || []).map((mapping, index) => (
+                  <div key={index} className="grid grid-cols-4 gap-2 p-2 border rounded">
+                    <Input
+                      placeholder="Field Name"
+                      value={mapping.fieldName || ""}
+                      onChange={(e) => {
+                        const newMappings = [...(field.fieldMappings || [])]
+                        newMappings[index] = { ...mapping, fieldName: e.target.value }
+                        onUpdate({ fieldMappings: newMappings })
+                      }}
+                    />
+                    <Input
+                      placeholder="Column"
+                      value={mapping.sheetColumn || ""}
+                      onChange={(e) => {
+                        const newMappings = [...(field.fieldMappings || [])]
+                        newMappings[index] = { ...mapping, sheetColumn: e.target.value }
+                        onUpdate({ fieldMappings: newMappings })
+                      }}
+                    />
+                    <Select
+                      value={mapping.aggregation || "first"}
+                      onValueChange={(value: "first" | "sum" | "average" | "last") => {
+                        const newMappings = [...(field.fieldMappings || [])]
+                        newMappings[index] = { ...mapping, aggregation: value }
+                        onUpdate({ fieldMappings: newMappings })
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="first">First</SelectItem>
+                        <SelectItem value="sum">Sum</SelectItem>
+                        <SelectItem value="average">Average</SelectItem>
+                        <SelectItem value="last">Last</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`manual-entry-${index}`}
+                        checked={mapping.isManualEntry || false}
+                        onCheckedChange={(checked) => {
+                          const newMappings = [...(field.fieldMappings || [])]
+                          newMappings[index] = { ...mapping, isManualEntry: !!checked }
+                          onUpdate({ fieldMappings: newMappings })
+                        }}
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          const newMappings = (field.fieldMappings || []).filter((_, i) => i !== index)
+                          onUpdate({ fieldMappings: newMappings })
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newMapping = {
+                      fieldName: "",
+                      sheetColumn: "",
+                      aggregation: "first" as const,
+                      isManualEntry: false,
+                      fieldType: "text" as const,
+                    }
+                    onUpdate({ fieldMappings: [...(field.fieldMappings || []), newMapping] })
+                  }}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Field Mapping
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded text-xs">
+              <h5 className="font-medium mb-1">How it works:</h5>
+              <div className="space-y-1 text-gray-600">
+                <div>1. Scan QR code to get identifier</div>
+                <div>2. Fetch all rows with that QR code from sheet</div>
+                <div>3. Group by unique products and aggregate data</div>
+                <div>4. Create dynamic fields for each product</div>
+                <div>5. Mix read-only (from sheet) and manual entry fields</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {field.type === "number" && field.isFormula && (
+          <div className="space-y-3">
+            <h4 className="font-medium">Formula Configuration</h4>
+            <div>
+              <Label>Formula</Label>
+              <Input
+                value={field.formula || ""}
+                onChange={(e) => onUpdate({ formula: e.target.value })}
+                placeholder="e.g., field_123 + field_456 * 2"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Use field IDs to reference other number fields. Supports +, -, *, /, (), etc.
+              </p>
+            </div>
+
+            {availableFields.length > 0 && (
+              <div>
+                <Label>Available Fields for Formula</Label>
+                <div className="text-xs text-gray-600 space-y-1 max-h-32 overflow-y-auto border rounded p-2">
+                  {availableFields.map((f) => (
+                    <div key={f.id} className="flex justify-between">
+                      <span>{f.label}</span>
+                      <code className="text-blue-600">{f.id}</code>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Copy field IDs to use in your formula</p>
+              </div>
+            )}
+
+            <div className="bg-blue-50 p-3 rounded text-xs">
+              <h5 className="font-medium mb-1">Formula Examples:</h5>
+              <div className="space-y-1 text-gray-600">
+                <div>• Simple: field_123 + field_456</div>
+                <div>• Complex: (field_123 * 0.1) + field_456</div>
+                <div>• Percentage: field_123 * field_456 / 100</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <h4 className="font-medium">Google Sheets Integration</h4>
+
+          <div>
+            <Label>Export to Column (Main Form)</Label>
+            <Input
+              value={field.googleSheetColumn || ""}
+              onChange={(e) => onUpdate({ googleSheetColumn: e.target.value })}
+              placeholder="e.g., A, B, C..."
+            />
+            <p className="text-xs text-gray-500 mt-1">Column in main form sheet for Send button</p>
+          </div>
+
+          <div>
+            <Label>Import Sheet URL</Label>
+            <Input
+              value={field.importSheetUrl || ""}
+              onChange={(e) => onUpdate({ importSheetUrl: e.target.value })}
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+              className="text-xs"
+            />
+          </div>
+
+          <div>
+            <Label>Import from Cell</Label>
+            <Input
+              value={field.importCell || ""}
+              onChange={(e) => onUpdate({ importCell: e.target.value })}
+              placeholder="e.g., A1, B2, C3..."
+            />
+            <p className="text-xs text-gray-500 mt-1">Cell to import data from (optional)</p>
+          </div>
+
+          {field.type === "qr" && (
+            <>
+              <div className="border-t pt-3">
+                <h5 className="font-medium text-sm mb-2">QR Scan Trigger Export</h5>
+                <p className="text-xs text-gray-500 mb-3">
+                  Separate export when QR is scanned (before main form submission)
+                </p>
+
+                <div className="space-y-2">
+                  <div>
+                    <Label>QR Scan Sheet URL</Label>
+                    <Input
+                      value={field.qrScanSheetUrl || ""}
+                      onChange={(e) => onUpdate({ qrScanSheetUrl: e.target.value })}
+                      placeholder="https://docs.google.com/spreadsheets/d/..."
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>QR Scan Cell</Label>
+                    <Input
+                      value={field.qrScanCell || ""}
+                      onChange={(e) => onUpdate({ qrScanCell: e.target.value })}
+                      placeholder="e.g., A1, B2, C3..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Cell to export QR data immediately when scanned</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h4 className="font-medium">
+            Position & Size ({designDevice.charAt(0).toUpperCase() + designDevice.slice(1)})
+          </h4>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>X Position</Label>
+              <Input
+                type="number"
+                min="0"
+                max={maxX}
+                value={currentLayout.position.x}
+                onChange={(e) =>
+                  onUpdate({
+                    [designDevice]: {
+                      ...currentLayout,
+                      position: {
+                        ...currentLayout.position,
+                        x: Math.max(0, Math.min(Number.parseInt(e.target.value) || 0, maxX)),
+                      },
+                    },
+                  })
+                }
+              />
+              <p className="text-xs text-gray-500">Max: {maxX}</p>
+            </div>
+            <div>
+              <Label>Y Position</Label>
+              <Input
+                type="number"
+                min="0"
+                max={maxY}
+                value={currentLayout.position.y}
+                onChange={(e) =>
+                  onUpdate({
+                    [designDevice]: {
+                      ...currentLayout,
+                      position: {
+                        ...currentLayout.position,
+                        y: Math.max(0, Math.min(Number.parseInt(e.target.value) || 0, maxY)),
+                      },
+                    },
+                  })
+                }
+              />
+              <p className="text-xs text-gray-500">Max: {maxY}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Width (px)</Label>
+              <Input
+                type="number"
+                min={constraints.minWidth}
+                max={constraints.maxWidth}
+                value={currentLayout.size.width}
+                onChange={(e) =>
+                  onUpdate({
+                    [designDevice]: {
+                      ...currentLayout,
+                      size: {
+                        ...currentLayout.size,
+                        width: Math.max(
+                          constraints.minWidth,
+                          Math.min(Number.parseInt(e.target.value) || constraints.defaultWidth, constraints.maxWidth),
+                        ),
+                      },
+                    },
+                  })
+                }
+              />
+              <p className="text-xs text-gray-500">
+                {constraints.minWidth}-{constraints.maxWidth}px
+              </p>
+            </div>
+            <div>
+              <Label>Height (px)</Label>
+              <Input
+                type="number"
+                min={constraints.minHeight}
+                max={constraints.maxHeight}
+                value={currentLayout.size.height}
+                onChange={(e) =>
+                  onUpdate({
+                    [designDevice]: {
+                      ...currentLayout,
+                      size: {
+                        ...currentLayout.size,
+                        height: Math.max(
+                          constraints.minHeight,
+                          Math.min(Number.parseInt(e.target.value) || constraints.defaultHeight, constraints.maxHeight),
+                        ),
+                      },
+                    },
+                  })
+                }
+              />
+              <p className="text-xs text-gray-500">
+                {constraints.minHeight}-{constraints.maxHeight}px
+              </p>
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            <div>
+              {`Current: ${currentLayout.size.width}×${currentLayout.size.height}px @ ${currentLayout.position.x}, ${currentLayout.position.y}`}
+            </div>
+            <div>{`Canvas: ${canvasSize.width}×${canvasSize.height}px`}</div>
+            <div>{`Device: ${designDevice}`}</div>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-interface ResponsivePreviewProps {
-  fields: FormField[]
-  backgroundColor: string
-  columns: number
-  width: string
-  device: "mobile" | "tablet" | "desktop"
-}
-
-function ResponsivePreview({ fields, backgroundColor, columns, width, device }: ResponsivePreviewProps) {
-  const renderFieldPreview = (field: FormField) => {
-    const commonProps = {
-      className: "w-full",
-      placeholder: field.placeholder || `Enter ${field.label.toLowerCase()}`,
-      disabled: field.readonly,
-    }
-
-    if (field.hidden) return null
-
-    switch (field.type) {
-      case "text":
-        return <Input {...commonProps} />
-      case "number":
-        return (
-          <div className="relative">
-            <Input {...commonProps} type="number" />
-            {field.isFormula && (
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                <Calculator className="w-3 h-3 text-blue-500" />
-              </div>
-            )}
-          </div>
-        )
-      case "date":
-        return <Input {...commonProps} type="date" />
-      case "dropdown":
-        return (
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select option..." />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.map((option, index) => (
-                <SelectItem key={index} value={option}>
-                  {option}
-                </SelectItem>
-              )) || <SelectItem value="option1">Option 1</SelectItem>}
-            </SelectContent>
-          </Select>
-        )
-      case "productLookup":
-        return (
-          <div className="flex items-center border rounded p-2">
-            <Search className="w-4 h-4 mr-2 text-blue-500" />
-            <span className="text-gray-500">Product Code-Name Lookup</span>
-          </div>
-        )
-      case "qr":
-        return (
-          <Button variant="outline" className="w-full">
-            <QrCode className="w-4 h-4 mr-2" />
-            Scan QR Code
-          </Button>
-        )
-      case "qrProductScanner":
-        return (
-          <div className="space-y-2">
-            <Button variant="outline" className="w-full">
-              <Database className="w-4 h-4 mr-2" />
-              Scan QR for Products
-            </Button>
-            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-              {field.fieldMappings?.length || 0} field mappings configured
-            </div>
-          </div>
-        )
-      case "geolocation":
-        return (
-          <div className="flex items-center space-x-2 p-2 border rounded">
-            <MapPin className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-500">Auto-detected location</span>
-          </div>
-        )
-      case "datetime":
-        return (
-          <div className="flex items-center space-x-2 p-2 border rounded">
-            <Clock className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-500">{new Date().toLocaleString()}</span>
-          </div>
-        )
-      case "user":
-        return (
-          <div className="flex items-center space-x-2 p-2 border rounded">
-            <User className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-500">Current user</span>
-          </div>
-        )
-      default:
-        return <Input {...commonProps} />
-    }
+function ResponsivePreview({ fields, backgroundColor, columns, width, device }: any) {
+  const containerStyle = {
+    backgroundColor: backgroundColor,
+    width: width,
+    display: "grid",
+    gridTemplateColumns: `repeat(${columns}, 1fr)`,
+    gap: "16px",
+    padding: "16px",
+    boxSizing: "border-box",
   }
 
   return (
-    <div className="p-4 md:p-8 flex justify-center">
-      <div
-        className="border shadow-lg rounded-lg overflow-auto"
-        style={{
-          backgroundColor,
-          width,
-          maxWidth: "100%",
-          maxHeight: "calc(100vh - 200px)",
-        }}
-      >
-        <div className="p-6">
-          <div
-            className="grid gap-6"
-            style={{
-              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-            }}
-          >
-            {fields
-              .filter((field) => !field.hidden)
-              .map((field) => (
-                <div key={field.id} className="space-y-2">
-                  <Label>
-                    {field.label}
-                    {field.required && <span className="text-red-500 ml-1">*</span>}
-                  </Label>
-                  {renderFieldPreview(field)}
-                </div>
-              ))}
+    <div className="flex justify-center items-center h-full">
+      <div style={containerStyle}>
+        {fields.map((field) => (
+          <div key={field.id}>
+            <PreviewField field={field} device={device} />
           </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-          {fields.filter((field) => !field.hidden).length === 0 && (
-            <div className="text-center text-gray-400 py-12">
-              <h3 className="text-lg font-medium mb-2">No visible fields</h3>
-              <p className="text-sm">Add fields to see the preview</p>
+function PreviewField({ field, device }: any) {
+  const commonProps = {
+    className: "w-full text-sm",
+    placeholder: field.placeholder || `Enter ${field.label.toLowerCase()}`,
+    disabled: field.readonly,
+    readOnly: field.readonly,
+  }
+
+  return (
+    <div>
+      <Label className="text-xs font-medium">
+        {field.label}
+        {field.required && <span className="text-red-500 ml-1">*</span>}
+      </Label>
+
+      {field.type === "text" && <Input {...commonProps} />}
+
+      {field.type === "number" && (
+        <div className="relative">
+          <Input {...commonProps} type="number" />
+          {field.isFormula && (
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <Calculator className="w-4 h-4 text-blue-500" />
             </div>
           )}
         </div>
-      </div>
+      )}
+
+      {field.type === "date" && <Input {...commonProps} type="date" />}
+
+      {field.type === "dropdown" && (
+        <Select disabled={field.readonly}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="Select option..." />
+          </SelectTrigger>
+          <SelectContent>
+            {field.options?.map((option: string, index: number) => (
+              <SelectItem key={index} value={option}>
+                {option}
+              </SelectItem>
+            )) || <SelectItem value="option1">Option 1</SelectItem>}
+          </SelectContent>
+        </Select>
+      )}
+
+      {field.type === "productLookup" && (
+        <div className="flex items-center border rounded p-2 text-sm">
+          <Search className="w-4 h-4 mr-2 text-blue-500" />
+          <span className="text-gray-500">Product Code-Name Lookup</span>
+        </div>
+      )}
+
+      {field.type === "qr" && (
+        <Button variant="outline" className="w-full" disabled={field.readonly}>
+          <QrCode className="w-4 h-4 mr-2" />
+          Scan QR Code
+        </Button>
+      )}
+
+      {field.type === "qrProductScanner" && (
+        <div className="space-y-2">
+          <Button variant="outline" className="w-full" disabled={field.readonly}>
+            <Database className="w-4 h-4 mr-2" />
+            Scan QR for Products
+          </Button>
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            Dynamic product fields will appear after scanning
+          </div>
+        </div>
+      )}
+
+      {field.type === "geolocation" && (
+        <div className="flex items-center space-x-2 p-2 border rounded">
+          <MapPin className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-gray-500">Auto-detected location</span>
+        </div>
+      )}
+
+      {field.type === "datetime" && (
+        <div className="flex items-center space-x-2 p-2 border rounded">
+          <Clock className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-gray-500">{new Date().toLocaleString()}</span>
+        </div>
+      )}
+
+      {field.type === "user" && (
+        <div className="flex items-center space-x-2 p-2 border rounded">
+          <User className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-gray-500">Current user</span>
+        </div>
+      )}
     </div>
   )
 }
