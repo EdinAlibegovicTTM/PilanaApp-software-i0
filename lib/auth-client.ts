@@ -4,10 +4,14 @@ export class AuthClient {
   private static REFRESH_TOKEN_KEY = "pilana_refresh_token"
   private static USER_KEY = "pilana_user"
 
-  static setTokens(accessToken: string, refreshToken: string) {
+  static setTokens(accessToken: string, refreshToken?: string) {
     if (typeof window !== "undefined") {
       localStorage.setItem(this.TOKEN_KEY, accessToken)
-      localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken)
+      if (refreshToken) {
+        localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken)
+      } else {
+        localStorage.removeItem(this.REFRESH_TOKEN_KEY)
+      }
     }
   }
 

@@ -1,15 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createFormSubmission, getFormSubmissions } from "@/lib/database"
+import { exportSubmissionToSheet } from "@/lib/google-sheets"
 
 export async function POST(request: NextRequest) {
   try {
     const submissionData = await request.json()
     const savedSubmission = await createFormSubmission(submissionData)
 
-    // TODO: Trigger Google Sheets export if configured
-    // if (submissionData.googleSheetUrl) {
-    //   await exportToGoogleSheets(savedSubmission, submissionData.googleSheetUrl)
-    // }
+    if (submissionData.googleSheetUrl) {
+      try {
+        await exportSubmissionToSheet(
+          savedSubmission,
+          submissionData.googleSheetUrl
+        )
+      } catch (err) {
+        console.error("Google Sheets export failed:", err)
+      }
+    }
 
     return NextResponse.json(savedSubmission)
   } catch (error) {
