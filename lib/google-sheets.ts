@@ -81,3 +81,23 @@ export class GoogleSheetsService {
     return match ? match[1] : null
   }
 }
+
+export async function exportSubmissionToSheet(
+  submission: { submitted_at: string; data: any },
+  sheetUrl: string,
+  range = "Sheet1!A1"
+) {
+  const service = GoogleSheetsService.getInstance()
+  const spreadsheetId = service.extractSpreadsheetId(sheetUrl)
+  if (!spreadsheetId) {
+    console.warn(`Invalid Google Sheet URL: ${sheetUrl}`)
+    return
+  }
+  const values = [[submission.submitted_at, JSON.stringify(submission.data)]]
+  try {
+    await service.appendToSheet(spreadsheetId, range, values)
+  } catch (error) {
+    console.error("Failed to export submission to Google Sheets:", error)
+    throw error
+  }
+}

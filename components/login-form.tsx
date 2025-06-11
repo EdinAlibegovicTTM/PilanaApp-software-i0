@@ -36,8 +36,8 @@ export function LoginForm() {
         throw new Error(data.error || "Login failed")
       }
 
-      // Store tokens and user data
-      AuthClient.setTokens(data.tokens.accessToken, data.tokens.refreshToken)
+      // Store token and user data
+      AuthClient.setTokens(data.token)
       AuthClient.setUser(data.user)
 
       // Redirect to dashboard
