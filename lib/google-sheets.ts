@@ -3,7 +3,6 @@ import { google } from "googleapis"
 export class GoogleSheetsService {
   private static instance: GoogleSheetsService
   private sheets: any
-  private initialized = false
 
   constructor() {
     this.initializeSheets()
@@ -32,30 +31,21 @@ export class GoogleSheetsService {
       })
 
       this.sheets = google.sheets({ version: "v4", auth })
-      this.initialized = true
-      console.log("Google Sheets API initialized successfully")
     } catch (error) {
       console.error("Failed to initialize Google Sheets:", error)
     }
   }
 
-  isInitialized(): boolean {
-    return this.initialized
-  }
-
   async appendToSheet(spreadsheetId: string, range: string, values: any[][]) {
     try {
       if (!this.sheets) {
-        await this.initializeSheets()
-        if (!this.sheets) {
-          throw new Error("Google Sheets not initialized")
-        }
+        throw new Error("Google Sheets not initialized")
       }
 
       const response = await this.sheets.spreadsheets.values.append({
         spreadsheetId,
         range,
-        valueInputOption: "USER_ENTERED", // Changed from RAW to USER_ENTERED for better formatting
+        valueInputOption: "RAW",
         resource: {
           values,
         },
@@ -71,10 +61,7 @@ export class GoogleSheetsService {
   async readFromSheet(spreadsheetId: string, range: string) {
     try {
       if (!this.sheets) {
-        await this.initializeSheets()
-        if (!this.sheets) {
-          throw new Error("Google Sheets not initialized")
-        }
+        throw new Error("Google Sheets not initialized")
       }
 
       const response = await this.sheets.spreadsheets.values.get({
@@ -89,60 +76,8 @@ export class GoogleSheetsService {
     }
   }
 
-  async updateCells(spreadsheetId: string, range: string, values: any[][]) {
-    try {
-      if (!this.sheets) {
-        await this.initializeSheets()
-        if (!this.sheets) {
-          throw new Error("Google Sheets not initialized")
-        }
-      }
-
-      const response = await this.sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range,
-        valueInputOption: "USER_ENTERED",
-        resource: {
-          values,
-        },
-      })
-
-      return response.data
-    } catch (error) {
-      console.error("Error updating Google Sheet cells:", error)
-      throw error
-    }
-  }
-
-  async getSheetInfo(spreadsheetId: string) {
-    try {
-      if (!this.sheets) {
-        await this.initializeSheets()
-        if (!this.sheets) {
-          throw new Error("Google Sheets not initialized")
-        }
-      }
-
-      const response = await this.sheets.spreadsheets.get({
-        spreadsheetId,
-      })
-
-      return response.data
-    } catch (error) {
-      console.error("Error getting Google Sheet info:", error)
-      throw error
-    }
-  }
-
   extractSpreadsheetId(url: string): string | null {
     const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)
     return match ? match[1] : null
   }
-
-  getSheetUrl(spreadsheetId: string): string {
-    return `https://docs.google.com/spreadsheets/d/${spreadsheetId}`
-  }
 }
-
-// Export a singleton instance
-export const googleSheetsService = GoogleSheetsService.getInstance()

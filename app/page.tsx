@@ -22,7 +22,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -375,13 +374,6 @@ function FormsContent({ user }: { user: any }) {
   const [activeTab, setActiveTab] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Dodati novo stanje za kreiranje novog form-a
-  const [isCreatingNewForm, setIsCreatingNewForm] = useState(false)
-  const [newFormData, setNewFormData] = useState({
-    name: "",
-    description: "",
-  })
-
   const refreshForms = async () => {
     try {
       setIsLoading(true)
@@ -448,72 +440,8 @@ function FormsContent({ user }: { user: any }) {
     setActiveTab(null)
   }
 
-  // Zameniti openNewFormTab funkciju
   const openNewFormTab = () => {
-    const newFormId = `new_form_${Date.now()}`
-    const newFormTab = {
-      id: newFormId,
-      tabId: newFormId,
-      name: "New Form",
-      description: "",
-      fields: [],
-      isNewForm: true,
-      created_at: new Date().toISOString(),
-      created_by: user.id,
-      published: false,
-    }
-
-    // Dodaj novi tab
-    setOpenTabs([...openTabs, newFormTab])
-    setActiveTab(newFormId)
-  }
-
-  // Dodati funkciju za čuvanje novog form-a
-  const saveNewForm = async (formData: any) => {
-    try {
-      const finalFormId = `form_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const newForm = {
-        ...formData,
-        id: finalFormId,
-        external_id: finalFormId,
-        created_by: user.id,
-        createdBy: user.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        version: 1,
-        published: false,
-        backgroundColor: "#ffffff",
-        columns: { mobile: 1, tablet: 2, desktop: 3 },
-      }
-
-      // Sačuvaj u localStorage
-      const savedForms = JSON.parse(localStorage.getItem("pilana_forms") || "[]")
-      savedForms.push(newForm)
-      localStorage.setItem("pilana_forms", JSON.stringify(savedForms))
-
-      // Pokušaj cloud sync
-      try {
-        const cloudStorage = CloudStorageService.getInstance()
-        await cloudStorage.saveForm(newForm)
-      } catch (cloudError) {
-        console.warn("Could not save to cloud, but form is saved locally", cloudError)
-      }
-
-      // Ukloni "new form" tab i dodaj stvarni form
-      const updatedTabs = openTabs.map((tab) =>
-        tab.isNewForm && tab.tabId === activeTab ? { ...newForm, tabId: finalFormId } : tab,
-      )
-      setOpenTabs(updatedTabs)
-      setActiveTab(finalFormId)
-
-      // Refresh forms list
-      await refreshForms()
-
-      alert(`Form "${formData.name}" created successfully!`)
-    } catch (error) {
-      console.error("Error creating form:", error)
-      alert("Error creating form. Please try again.")
-    }
+    setActiveTab(null) // This will show the forms list
   }
 
   if (openTabs.length > 0 && activeTab) {
@@ -568,25 +496,7 @@ function FormsContent({ user }: { user: any }) {
           <div className="bg-white border rounded-lg p-6">
             {(() => {
               const currentForm = openTabs.find((tab) => tab.tabId === activeTab)
-              if (!currentForm) return null
-
-              // Ako je novi form, prikaži kreator
-              if (currentForm.isNewForm) {
-                return (
-                  <NewFormCreator
-                    onSave={saveNewForm}
-                    onCancel={() => {
-                      // Ukloni tab za novi form
-                      const newTabs = openTabs.filter((tab) => tab.tabId !== activeTab)
-                      setOpenTabs(newTabs)
-                      setActiveTab(newTabs.length > 0 ? newTabs[0].tabId : null)
-                    }}
-                  />
-                )
-              }
-
-              // Inače prikaži postojeći form
-              return <FormFillInterface form={currentForm} user={user} />
+              return currentForm ? <FormFillInterface form={currentForm} user={user} /> : null
             })()}
           </div>
         )}
@@ -1109,125 +1019,6 @@ function ReportsContent() {
       <div className="text-center py-12">
         <p className="text-gray-500">Customizable reports and analytics will be implemented here.</p>
         <p className="text-sm text-gray-400 mt-2">Real-time data from Neon PostgreSQL database.</p>
-      </div>
-    </div>
-  )
-}
-
-// Dodati novu komponentu za kreiranje form-a
-function NewFormCreator({ onSave, onCancel }: { onSave: (formData: any) => void; onCancel: () => void }) {
-  const [formName, setFormName] = useState("")
-  const [formDescription, setFormDescription] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSave = async () => {
-    if (!formName.trim()) {
-      alert("Please enter a form name")
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      await onSave({
-        name: formName,
-        description: formDescription,
-        fields: [],
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Create New Form</h2>
-        <p className="text-gray-600">Start building your custom form</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Plus className="w-5 h-5 text-blue-600" />
-            <span>Form Details</span>
-          </CardTitle>
-          <CardDescription>Enter the basic information for your new form</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="form-name" className="text-base font-medium">
-              Form Name *
-            </Label>
-            <Input
-              id="form-name"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="e.g., Customer Survey, Product Inventory, Event Registration"
-              className="mt-2"
-              autoFocus
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Choose a descriptive name that clearly identifies the form's purpose
-            </p>
-          </div>
-
-          <div>
-            <Label htmlFor="form-description" className="text-base font-medium">
-              Description (Optional)
-            </Label>
-            <Textarea
-              id="form-description"
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              placeholder="Describe what this form is used for, who should fill it out, and any special instructions..."
-              rows={4}
-              className="mt-2"
-            />
-            <p className="text-sm text-gray-500 mt-1">This description will help users understand the form's purpose</p>
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Your form will be created and opened in the Form Builder</li>
-              <li>• You can add fields using drag & drop</li>
-              <li>• Configure field properties and validation</li>
-              <li>• Preview your form on different devices</li>
-              <li>• Publish when ready for users</li>
-            </ul>
-          </div>
-        </CardContent>
-        <CardContent className="pt-0">
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={!formName.trim() || isLoading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Form
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="mt-8 text-center">
-        <p className="text-sm text-gray-500">
-          Need help? Check out our <button className="text-blue-600 hover:underline">form building guide</button> or{" "}
-          <button className="text-blue-600 hover:underline">watch tutorial videos</button>
-        </p>
       </div>
     </div>
   )

@@ -1,40 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createFormSubmission, getFormSubmissions, getFormById } from "@/lib/database"
-import { GoogleSheetsService } from "@/lib/google-sheets"
+import { createFormSubmission, getFormSubmissions } from "@/lib/database"
 
 export async function POST(request: NextRequest) {
   try {
     const submissionData = await request.json()
     const savedSubmission = await createFormSubmission(submissionData)
 
-    // Export to Google Sheets if configured
-    try {
-      const form = await getFormById(submissionData.form_id)
-
-      if (form && form.main_google_sheet_url) {
-        const sheetsService = new GoogleSheetsService()
-        const spreadsheetId = sheetsService.extractSpreadsheetId(form.main_google_sheet_url)
-
-        if (spreadsheetId) {
-          // Prepare data for export
-          const headers = form.fields.map((field: any) => field.label || field.name || field.id)
-          const values = form.fields.map((field: any) => {
-            const fieldId = field.id
-            return submissionData.data[fieldId] || ""
-          })
-
-          // Add timestamp
-          headers.push("Submission Time")
-          values.push(new Date().toISOString())
-
-          // Export to sheet
-          await sheetsService.appendToSheet(spreadsheetId, "Sheet1!A1", [values])
-        }
-      }
-    } catch (sheetError) {
-      console.error("Error exporting to Google Sheets:", sheetError)
-      // Continue with the submission even if sheet export fails
-    }
+    // TODO: Trigger Google Sheets export if configured
+    // if (submissionData.googleSheetUrl) {
+    //   await exportToGoogleSheets(savedSubmission, submissionData.googleSheetUrl)
+    // }
 
     return NextResponse.json(savedSubmission)
   } catch (error) {
