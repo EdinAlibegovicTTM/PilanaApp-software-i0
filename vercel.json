@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm install && npm run build",
+  "installCommand": "npm install",
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "github": {
+    "silent": true
+  },
+  "projectSettings": {
+    "name": "pilanaapp",
+    "framework": "nextjs"
+  }
+}
